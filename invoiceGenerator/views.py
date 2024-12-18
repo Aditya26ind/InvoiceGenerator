@@ -116,9 +116,9 @@ class GenerateInvoicesView(APIView):
             )
             
             path=self.generateInvoicePDF(user,invoice_obj,itemsOnlyTopass)
-            print(path)
-            print(settings.MEDIA_URL)
             file_url = request.build_absolute_uri(settings.MEDIA_URL + path)
+            print(file_url)
+            print("BASE_DIR",settings.BASE_DIR)
             
             return Response({'message': 'Invoice created successfully', 'invoice_number': invoice_number,'path':file_url}, status=201)
         
@@ -164,12 +164,13 @@ class GenerateInvoicesView(APIView):
         }
         
         # Ensure invoice directory exists
+        print(settings.MEDIA_ROOT)
         invoice_dir = os.path.join(settings.MEDIA_ROOT, 'invoices')
         os.makedirs(invoice_dir, exist_ok=True)
-        
         # Generate unique filename
         filename = f"invoice_{data['invoice_number']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
         filepath = os.path.join(invoice_dir, filename)
+        # relative_path = os.path.relpath(filepath, settings.MEDIA_ROOT)
         
         # Create PDF document
         
@@ -281,7 +282,8 @@ class GenerateInvoicesView(APIView):
         # Build PDF
         try:
             doc.build(elements)
-            return filepath
+            relative_path = os.path.relpath(filepath, settings.MEDIA_ROOT)
+            return relative_path
         except Exception as e:
             print(f"Error generating PDF: {e}")
             return None
